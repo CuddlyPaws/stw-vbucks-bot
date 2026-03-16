@@ -1,45 +1,38 @@
 const axios = require("axios");
-const cheerio = require("cheerio");
 
 const WEBHOOK = process.env.DISCORD_WEBHOOK;
-const URL = "https://stw-planner.com";
+
+// STW Planner API endpoint
+const API = "https://api.stw-planner.com/v1/mission-alerts";
 
 async function checkVBucks() {
+  try {
+    const res = await axios.get(API);
+    const missions = res.data;
 
-    try {
+    const vbuckMissions = missions.filter(m =>
+      m.rewards && m.rewards.some(r => r.type === "vbucks")
+    );
 
-        const res = await axios.get(URL);
-        const page = res.data;
+    if (vbuckMissions.length > 0) {
+      let msg = "💰 **V-Bucks missions today!**\n\n";
 
-        if (page.includes("VBUCKS AVAILABLE")) {
+      vbuckMissions.forEach(m => {
+        msg += `${m.zone} - ${m.missionType}\n`;
+      });
 
-            await axios.post(WEBHOOK, {
-                content:
-`💰 **V-Bucks mission available today!**
-
-Check details:
-https://stw-planner.com`
-            });
-
-        } else {
-
-            await axios.post(WEBHOOK, {
-                content:
-`❌ **No V-Bucks mission today**
-
-Checked automatically at 5:30 AM IST`
-            });
-
-        }
-
-    } catch (err) {
-
-        await axios.post(WEBHOOK, {
-            content: "⚠️ Error checking STW missions"
-        });
-
+      await axios.post(WEBHOOK, { content: msg });
+    } else {
+      await axios.post(WEBHOOK, {
+        content: "❌ **No V-Bucks mission today**"
+      });
     }
 
+  } catch (err) {
+    await axios.post(WEBHOOK, {
+      content: "⚠️ Error checking missions"
+    });
+  }
 }
 
 checkVBucks();
