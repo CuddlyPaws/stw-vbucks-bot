@@ -11,18 +11,32 @@ async function checkVBucks() {
         const res = await axios.get(URL);
         const $ = cheerio.load(res.data);
 
-        const title = $("h3:contains('VBUCKS')").text();
+        const vbuckTitle = $("h3:contains('VBUCKS AVAILABLE')").text().trim();
 
-        if (title.includes("VBUCKS")) {
+        if (vbuckTitle) {
+
+            const missionInfo = $("h3:contains('VBUCKS AVAILABLE')")
+                .parent()
+                .text()
+                .replace(/\s+/g, " ")
+                .trim();
 
             await axios.post(WEBHOOK, {
-                content: "💰 **STW VBUCK MISSION TODAY!**\nhttps://stw-planner.com"
+                content:
+`💰 **STW V-BUCK MISSION FOUND**
+
+${missionInfo}
+
+🔗 https://stw-planner.com`
             });
 
         } else {
 
             await axios.post(WEBHOOK, {
-                content: "❌ **No V-Bucks mission today**"
+                content:
+`❌ **No V-Bucks mission today**
+
+Checked automatically at 5:30 AM IST`
             });
 
         }
@@ -30,7 +44,7 @@ async function checkVBucks() {
     } catch (err) {
 
         await axios.post(WEBHOOK, {
-            content: "⚠️ Error checking STW missions"
+            content: "⚠️ Bot error while checking STW missions"
         });
 
     }
