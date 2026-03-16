@@ -9,25 +9,16 @@ async function checkVBucks() {
     try {
 
         const res = await axios.get(URL);
-        const $ = cheerio.load(res.data);
+        const page = res.data;
 
-        const vbuckTitle = $("h3:contains('VBUCKS AVAILABLE')").text().trim();
-
-        if (vbuckTitle) {
-
-            const missionInfo = $("h3:contains('VBUCKS AVAILABLE')")
-                .parent()
-                .text()
-                .replace(/\s+/g, " ")
-                .trim();
+        if (page.includes("VBUCKS AVAILABLE")) {
 
             await axios.post(WEBHOOK, {
                 content:
-`💰 **STW V-BUCK MISSION FOUND**
+`💰 **V-Bucks mission available today!**
 
-${missionInfo}
-
-🔗 https://stw-planner.com`
+Check details:
+https://stw-planner.com`
             });
 
         } else {
@@ -44,7 +35,7 @@ Checked automatically at 5:30 AM IST`
     } catch (err) {
 
         await axios.post(WEBHOOK, {
-            content: "⚠️ Bot error while checking STW missions"
+            content: "⚠️ Error checking STW missions"
         });
 
     }
